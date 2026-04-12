@@ -11,13 +11,13 @@
   "theme_color": "#5dc0fd",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/logoslzbeisebol.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/logoslzbeisebol.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
