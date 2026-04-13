@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import Sidebar from "@/components/sidebar";
 import Loading from "@/components/loading";
-import AdminModal from "@/components/admin-modal"; 
+import AdminModal from "@/components/admin-modal";
 
 type Tab = "evolucao" | "feedbacks" | "jogos";
 
@@ -54,7 +54,6 @@ export default function HistoryPage() {
 
   if (loading) return <Loading visible={true} />;
 
-  // Mapeamento dos 12 atributos para o gráfico
   const chartData = history.map((h) => ({
     data: new Date(h.created_at).toLocaleDateString("pt-BR"),
     Overall: h.overall,
@@ -79,19 +78,21 @@ export default function HistoryPage() {
         onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
-      <div className="flex-1 p-4 md:p-10 ml-14 flex flex-col items-center">
-        <header className="w-full max-w-5xl mb-6 text-white animate-in slide-in-from-top duration-700">
-          <h1 className="text-3xl font-black italic uppercase tracking-tighter leading-none">
+      {/* Ajuste de margem responsiva: ml-0 no mobile, ml-14 no desktop */}
+      <div className="flex-1 p-4 md:p-10 ml-0 md:ml-14 flex flex-col items-center overflow-y-auto no-scrollbar">
+        <header className="w-full max-w-5xl mb-6 text-white animate-in slide-in-from-top duration-700 mt-12 md:mt-0">
+          <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter leading-tight">
             Histórico de Performance
           </h1>
-          <p className="text-[10px] font-bold opacity-70 uppercase tracking-[0.3em] mt-1">
+          <p className="text-[8px] md:text-[10px] font-bold opacity-70 uppercase tracking-[0.2em] md:tracking-[0.3em] mt-1">
             Unidade de Inteligência Itapiracó
           </p>
         </header>
 
         {/* ESTRUTURA DE FICHÁRIO */}
         <div className="w-full max-w-5xl flex-1 flex flex-col animate-in fade-in zoom-in-95 duration-500">
-          <div className="flex gap-1 items-end px-4">
+          {/* TAB CONTAINER: Scroll horizontal no mobile */}
+          <div className="flex gap-1 items-end px-2 md:px-4 overflow-x-auto no-scrollbar scroll-smooth">
             <TabHandle
               active={activeTab === "evolucao"}
               onClick={() => setActiveTab("evolucao")}
@@ -105,27 +106,26 @@ export default function HistoryPage() {
             <TabHandle
               active={activeTab === "jogos"}
               onClick={() => setActiveTab("jogos")}
-              label="Notas de Jogo"
+              label="Jogos"
             />
           </div>
 
-          <div className="bg-white rounded-lg shadow-2xl p-6 md:p-12 flex-1 min-h-150 relative">
+          <div className="bg-white rounded-2xl md:rounded-lg shadow-2xl p-5 md:p-12 flex-1 min-h-125 relative">
             {activeTab === "evolucao" && (
-              <div className="space-y-12">
+              <div className="space-y-8 md:space-y-12">
                 <section>
-                  <div className="flex justify-between items-end mb-8">
-                    <div>
-                      <h2 className="text-slate-800 font-black italic uppercase text-sm flex items-center gap-2">
-                        <div className="w-2 h-5 bg-[#5dc0fd] rounded-full" />
-                        Historico de Evolução
-                      </h2>
-                    </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase italic">
+                  <div className="flex justify-between items-end mb-6">
+                    <h2 className="text-slate-800 font-black italic uppercase text-xs md:text-sm flex items-center gap-2">
+                      <div className="w-1.5 h-4 md:w-2 md:h-5 bg-[#5dc0fd] rounded-full" />
+                      Gráfico de Evolução
+                    </h2>
+                    <span className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase italic">
                       Escala 0-100
                     </span>
                   </div>
 
-                  <div className="h-112.5 w-full bg-slate-50/50 rounded-md p-6 border border-slate-100 shadow-inner">
+                  {/* Altura do gráfico reduzida no mobile (h-80 vs h-112) */}
+                  <div className="h-80 md:h-112.5 w-full bg-slate-50/50 rounded-xl p-2 md:p-6 border border-slate-100 shadow-inner">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData}>
                         <CartesianGrid
@@ -135,30 +135,30 @@ export default function HistoryPage() {
                         />
                         <XAxis
                           dataKey="data"
-                          fontSize={9}
+                          fontSize={8}
                           fontWeight="900"
                           stroke="#cbd5e1"
                           tickMargin={10}
                         />
                         <YAxis
-                          fontSize={9}
+                          fontSize={8}
                           fontWeight="900"
                           stroke="#cbd5e1"
                           domain={[0, 100]}
                         />
                         <Tooltip
                           contentStyle={{
-                            borderRadius: "20px",
+                            borderRadius: "15px",
                             border: "none",
-                            boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
-                            padding: "15px",
+                            boxShadow: "0 10px 15px rgba(0,0,0,0.1)",
+                            fontSize: "10px",
                           }}
                         />
                         <Legend
                           iconType="circle"
                           wrapperStyle={{
-                            paddingTop: "30px",
-                            fontSize: "9px",
+                            paddingTop: "20px",
+                            fontSize: "8px",
                             fontWeight: "900",
                             textTransform: "uppercase",
                           }}
@@ -168,11 +168,9 @@ export default function HistoryPage() {
                           type="monotone"
                           dataKey="Overall"
                           stroke="#0f172a"
-                          strokeWidth={5}
-                          dot={{ r: 6, fill: "#0f172a" }}
-                          activeDot={{ r: 8 }}
+                          strokeWidth={4}
+                          dot={{ r: 4, fill: "#0f172a" }}
                         />
-
                         <Line
                           type="monotone"
                           dataKey="Velocidade"
@@ -189,71 +187,8 @@ export default function HistoryPage() {
                         />
                         <Line
                           type="monotone"
-                          dataKey="Arremesso"
-                          stroke="#8b5cf6"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
                           dataKey="Defesa"
                           stroke="#10b981"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Agilidade"
-                          stroke="#ec4899"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Flexibilidade"
-                          stroke="#06b6d4"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Resistência"
-                          stroke="#f59e0b"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Visão"
-                          stroke="#6366f1"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Precisão"
-                          stroke="#ef4444"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Rebatida"
-                          stroke="#475569"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Contato"
-                          stroke="#a855f7"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Frequência"
-                          stroke="#22c55e"
                           strokeWidth={2}
                           dot={false}
                         />
@@ -262,13 +197,14 @@ export default function HistoryPage() {
                   </div>
                 </section>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {/* Grid de MiniStats: 2 colunas no mobile */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
                   <MiniStat
-                    label="Performance Atual"
+                    label="Performance"
                     value={history[history.length - 1]?.overall || 0}
                   />
                   <MiniStat
-                    label="Saldo de Evolução"
+                    label="Evolução"
                     value={`${history[history.length - 1]?.overall - history[0]?.overall >= 0 ? "+" : ""}${history[history.length - 1]?.overall - history[0]?.overall || 0}%`}
                     isPositive={
                       history[history.length - 1]?.overall -
@@ -277,7 +213,7 @@ export default function HistoryPage() {
                     }
                   />
                   <MiniStat
-                    label="Maior Pico"
+                    label="Pico"
                     value={Math.max(...history.map((h) => h.overall), 0)}
                   />
                   <MiniStat label="Registros" value={history.length} />
@@ -289,29 +225,35 @@ export default function HistoryPage() {
               <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
                 <h2 className="text-slate-800 font-black italic uppercase text-sm mb-6 flex items-center gap-2">
                   <div className="w-2 h-5 bg-[#5dc0fd] rounded-full" />
-                  Prontuário de Avaliações
+                  Avaliações do Coach
                 </h2>
-                <div className="grid gap-6">
+                <div className="grid gap-4 md:gap-6">
                   {history
                     .filter((h) => h.notas_tecnicas)
                     .reverse()
                     .map((h, i) => (
                       <div
                         key={i}
-                        className="bg-slate-50 border-l-12 border-[#5dc0fd] p-8 rounded-r-4xl relative group hover:bg-slate-100 transition-colors"
+                        className="bg-slate-50 border-l-4 md:border-l-12 border-[#5dc0fd] p-5 md:p-8 rounded-r-2xl md:rounded-r-4xl relative group"
                       >
-                        <span className="absolute top-6 right-8 text-[10px] font-black text-slate-300 italic uppercase tracking-widest">
-                          {new Date(h.created_at).toLocaleDateString("pt-BR")}
-                        </span>
-                        <p className="text-slate-600 text-sm font-bold leading-relaxed italic pr-24">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-[8px] md:text-[10px] font-black text-[#5dc0fd] uppercase tracking-widest bg-[#5dc0fd]/10 px-2 py-1 rounded-md">
+                            {new Date(h.created_at).toLocaleDateString("pt-BR")}
+                          </span>
+                        </div>
+                        <p className="text-slate-600 text-xs md:text-sm font-bold leading-relaxed italic">
                           "{h.notas_tecnicas}"
                         </p>
                       </div>
                     ))}
+                  {history.filter((h) => h.notas_tecnicas).length === 0 && (
+                    <div className="text-center py-20 opacity-20 font-black uppercase italic">
+                      Sem feedbacks registrados
+                    </div>
+                  )}
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </div>
@@ -320,6 +262,8 @@ export default function HistoryPage() {
     </main>
   );
 }
+
+// --- SUBCOMPONENTES AJUSTADOS ---
 
 function TabHandle({
   active,
@@ -333,7 +277,8 @@ function TabHandle({
   return (
     <button
       onClick={onClick}
-      className={`px-8 py-4 rounded-t-3xl text-[10px] font-black uppercase italic tracking-tighter transition-all duration-500 ${active ? "bg-white text-slate-800 shadow-[-10px_-10px_30px_rgba(0,0,0,0.05)] h-14" : "bg-white/20 text-white/50 h-11 hover:bg-white/40"}`}
+      className={`px-5 md:px-8 py-3 md:py-4 rounded-t-2xl md:rounded-t-3xl text-[9px] md:text-[10px] font-black uppercase italic whitespace-nowrap transition-all duration-500 
+      ${active ? "bg-white text-slate-800 shadow-md h-12 md:h-14" : "bg-white/20 text-white/50 h-10 md:h-11"}`}
     >
       {label}
     </button>
@@ -350,12 +295,12 @@ function MiniStat({
   isPositive?: boolean;
 }) {
   return (
-    <div className="bg-slate-50 p-6 rounded-4xl border border-slate-100 shadow-sm">
-      <p className="text-[9px] font-black text-slate-400 uppercase leading-none mb-2 tracking-widest">
+    <div className="bg-slate-50 p-4 md:p-6 rounded-2xl md:rounded-4xl border border-slate-100 shadow-sm">
+      <p className="text-[7px] md:text-[9px] font-black text-slate-400 uppercase mb-1 md:mb-2 tracking-widest">
         {label}
       </p>
       <p
-        className={`text-3xl font-black italic tracking-tighter ${isPositive ? "text-[#10b981]" : "text-slate-800"}`}
+        className={`text-xl md:text-3xl font-black italic tracking-tighter ${isPositive ? "text-[#10b981]" : "text-slate-800"}`}
       >
         {value}
       </p>
