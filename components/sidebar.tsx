@@ -2,15 +2,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useSensor } from "@/context/SensorContext";
 
 interface SidebarProps {
   isAdmin: boolean;
-  onOpenAdmin: () => void; // Prop obrigatória para abrir o Modal
+  onOpenAdmin: () => void; 
 }
 
 export default function Sidebar({ isAdmin, onOpenAdmin }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { isEnabled, setIsEnabled, permissionStatus, requestPermission } = useSensor();
 
   return (
     <>
@@ -120,6 +122,25 @@ export default function Sidebar({ isAdmin, onOpenAdmin }: SidebarProps) {
               }
             />
           )}
+        </div>
+
+        {/* Sensor de Gyroscópio */}
+        <div className="p-6 border-t border-slate-100 bg-slate-50 mt-auto">
+          <p className="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">
+            Experiência Imersiva
+          </p>
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-slate-600 uppercase italic">Giroscópio</span>
+              <span className="text-[9px] text-slate-400 font-bold uppercase">Inclinação Física</span>
+            </div>
+            <button 
+              onClick={() => setIsEnabled(!isEnabled)}
+              className={`w-12 h-6 rounded-full p-1 transition-all duration-300 ${isEnabled ? 'bg-[#5dc0fd] shadow-[0_0_10px_#5dc0fd]' : 'bg-slate-300'}`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${isEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+            </button>
+          </div>
         </div>
 
         {/* Botão de Logout */}

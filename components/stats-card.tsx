@@ -1,10 +1,12 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { useSensor } from "@/context/SensorContext"; // Importando o contexto que criamos
 
 export default function StatsCard({ profile }: { profile: any }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
+  const { coords, isEnabled } = useSensor(); // Consumindo o estado do giroscópio
   const [images, setImages] = useState({
     front: null as string | null,
     bg: null as string | null,
@@ -23,11 +25,13 @@ export default function StatsCard({ profile }: { profile: any }) {
     }
   }, [profile]);
 
-  const handleMove = useCallback((e: React.MouseEvent) => {
-    if (!cardRef.current) return;
+  // Função centralizada de cálculo para ser usada por Mouse e Touch
+  const updateEffect = useCallback((clientX: number, clientY: number) => {
+    if (!cardRef.current || isEnabled) return; // Se o giroscópio estiver ligado, ele manda no estilo
+
     const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
 
     const px = Math.min(Math.max((x / rect.width) * 100, 0), 100);
     const py = Math.min(Math.max((y / rect.height) * 100, 0), 100);
@@ -53,7 +57,31 @@ export default function StatsCard({ profile }: { profile: any }) {
       "--o": 1,
       "--hyp": Math.sqrt(Math.pow(py - 50, 2) + Math.pow(px - 50, 2)) / 50,
     });
-  }, []);
+  }, [isEnabled]);
+
+  // Handlers para Mouse
+  const handleMouseMove = (e: React.MouseEvent) => {
+    updateEffect(e.clientX, e.clientY);
+  };
+
+  // Handlers para Touch (Mobile)
+  const handleTouchMove = (e: React.TouchEvent) => {
+    // Usamos o primeiro toque detectado
+    const touch = e.touches[0];
+    updateEffect(touch.clientX, touch.clientY);
+  };
+
+  // Efeito para o Giroscópio (Sensores)
+  useEffect(() => {
+    if (isEnabled) {
+      setStyle((s: any) => ({
+        ...s,
+        "--rx": coords.x * 20, // Multiplicador para sensibilidade
+        "--ry": coords.y * 20,
+        "--o": 1,
+      }));
+    }
+  }, [coords, isEnabled]);
 
   const [style, setStyle] = useState<any>({
     "--mx": "50%",
@@ -96,8 +124,19 @@ export default function StatsCard({ profile }: { profile: any }) {
   return (
     <div
       className={`perspective-midrange w-96 aspect-63/88 relative cursor-pointer ${isFlipped ? "is-flipped" : ""}`}
-      onMouseMove={handleMove}
+      style={{ touchAction: 'none' }} // Crucial para mobile: impede o scroll da página ao mover o dedo na carta
+      onMouseMove={handleMouseMove}
+      onTouchMove={handleTouchMove}
       onMouseLeave={() =>
+        setStyle((s: any) => ({
+          ...s,
+          "--rx": 0,
+          "--ry": 0,
+          "--o": 1,
+          "--pointer-from-center": 0,
+        }))
+      }
+      onTouchEnd={() =>
         setStyle((s: any) => ({
           ...s,
           "--rx": 0,
@@ -188,37 +227,29 @@ export default function StatsCard({ profile }: { profile: any }) {
           <div className="card__grain z-50 pointer-events-none" />
           <div className="card__glare z-40" />
           <div className="card__foil z-45" />
-          {/* LOGO */}
           <div className="absolute top-6 right-6 z-40 w-12 h-12 pointer-events-none">
             <img
               src="/logoslzbeisebol.png"
               alt="Logo São Luís Beisebol"
               className="w-full h-full object-contain opacity-80 filter drop-shadow-md brightness-110"
               onError={(e) => {
-                console.error("Erro ao carregar a logo. Verifique se o arquivo está em /public/logoslzbeisebol.png");
                 e.currentTarget.style.display = 'none';
               }}
             />
           </div>
   
-          {/* BORDA */}
           <div className="absolute inset-0 z-10 pointer-events-none bg-radial from-indigo-500 from-25% to-teal-400 card-frame-style rounded-md overflow-hidden" />
           <div className="card__glitter z-15 opacity-20" />
 
-          {/* STATS */}
           <div className="absolute inset-5 z-20 rounded-md overflow-hidden bg-repeat bg-linear-to-r from-gray-400 via-gray-100 to-gray-400 h-[92%] flex flex-col items-center p-2 text-slate-900 shadow-inner">
             <h3 className="text-center font-black italic uppercase tracking-tighter text-slate-800 text-sm self-center justify-center">
               {profile?.jersey_name || "PLAYER"} • #{profile?.jersey_number || "00"}
             </h3>
-            {/* RADAR CHART*/}
             <div className="flex-1 w-full flex items-center justify-center p-1 mb-2 relative overflow-visible bg-transparent ">
-              
               <div className="absolute inset-0 opacity-10 pointer-events-none" />
-              
               <RadarChart stats={radarFull} size={200} />
             </div>
 
-            {/* Grade de Atributos */}
             <div className="w-full bg-slate-800/10 rounded-lg p-2 border border-black/5">
               <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
                 <div className="flex flex-col gap-1.5">
@@ -238,7 +269,6 @@ export default function StatsCard({ profile }: { profile: any }) {
               </div>
             </div>
 
-            {/* Rodapé do Verso */}
             <div className="mt-2 w-full flex justify-between items-center px-1 opacity-50 font-black italic text-[7px] uppercase tracking-widest">
               <span>São Luís Beisebol</span>
             </div>
@@ -249,9 +279,9 @@ export default function StatsCard({ profile }: { profile: any }) {
   );
 }
 
+// Funções auxiliares StatItem e RadarChart permanecem iguais abaixo...
 function StatItem({ label, val }: { label: string; val: number }) {
   const percentage = Math.min(Math.max(val || 0, 0), 100);
-
   return (
     <div className="flex flex-col w-full">
       <div className="flex justify-between items-end px-0.5">
@@ -268,13 +298,7 @@ function StatItem({ label, val }: { label: string; val: number }) {
   );
 }
 
-function RadarChart({
-  stats,
-  size,
-}: {
-  stats: { label: string; value: number }[];
-  size: number;
-}) {
+function RadarChart({ stats, size }: { stats: { label: string; value: number }[]; size: number }) {
   const centerX = size / 2;
   const centerY = size / 2;
   const radius = (size / 2) * 0.72;
@@ -290,22 +314,9 @@ function RadarChart({
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
       {[0.5, 1].map((m) => (
-        <circle
-          key={m}
-          cx={centerX}
-          cy={centerY}
-          r={radius * m}
-          fill="none"
-          stroke="rgba(0,0,0,0.15)"
-          strokeWidth="1"
-        />
+        <circle key={m} cx={centerX} cy={centerY} r={radius * m} fill="none" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
       ))}
-      <polygon
-        points={points}
-        fill="rgba(6, 182, 212, 0.5)"
-        stroke="#0891b2"
-        strokeWidth="2"
-      />
+      <polygon points={points} fill="rgba(6, 182, 212, 0.5)" stroke="#0891b2" strokeWidth="2" />
       {stats.map((stat, i) => (
         <text
           key={i}

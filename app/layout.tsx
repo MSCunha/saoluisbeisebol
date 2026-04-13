@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import InstallPWA from "@/components/install-pwa";
 import NotificationHandler from "@/components/notification-handler";
+import { SensorProvider } from "@/context/SensorContext";
+import SensorPopup from "@/components/sensor-popup";
 
 export const metadata: Metadata = {
   title: "SLZ Beisebol",
@@ -25,8 +27,11 @@ export default function RootLayout({
         {/* Gerenciador de notificações e PWA */}
         <NotificationHandler />
         <InstallPWA /> 
+        <SensorProvider>
+          <SensorPopup />
+          {children}
+        </SensorProvider>
         
-        {children}
       </body>
     </html>
   );
